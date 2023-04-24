@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+html,
+body {
+    color: #363636;
+    max-width: 100vw;
+    overflow-x: hidden;
+    font-size: 16px;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.pt-full {
+    padding-top: 100%;
+}
+
+.animation-fadeIn {
+    opacity: 1;
+    animation: fadeIn 1s;
+    -webkit-animation: fadeIn 1s;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
