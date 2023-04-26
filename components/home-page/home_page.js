@@ -66,22 +66,34 @@ function HomePage({
                     .then((res) => res.json())
                     .then(async (response) => {
                         const pokemonResult = response.results
-                        const data = []
-                        for (let i = 0; i < pokemonResult.length; i++) {
-                            const pokemonData = await fetch(
-                                pokemonResult[i].url,
-                                { method: "GET" }
-                            ).then((res) => res.json())
-                            data.push({
-                                id: pokemonData?.id ?? pokemonData.name,
-                                name: pokemonData.name,
-                                image: pokemonData.sprites.other.dream_world
-                                    .front_default,
-                            })
-                        }
+                        const requestPokemon = pokemonResult.map((item) =>
+                            fetch(item.url, { method: "GET" }).catch(
+                                (err) => {}
+                            )
+                        )
 
-                        setPokemonList(data, page)
-                        setIsLoading(false)
+                        Promise.all(requestPokemon)
+                            .then((rsponse) =>
+                                Promise.all(rsponse.map((res) => res.json()))
+                            )
+                            .then((item) => {
+                                const data = []
+                                for (let i = 0; i < item.length; i++) {
+                                    data.push({
+                                        id: item[i]?.id ?? item[i].name,
+                                        name: item[i].name,
+                                        image: item[i].sprites.other.dream_world
+                                            .front_default,
+                                    })
+                                }
+
+                                setPokemonList(data, page)
+                                setIsLoading(false)
+                            })
+                            .catch((err) => {
+                                setPokemonList([], page)
+                                setIsLoading(false)
+                            })
                     })
                     .catch((err) => {
                         setPokemonList([], page)

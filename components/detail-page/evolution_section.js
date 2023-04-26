@@ -35,25 +35,37 @@ function EvolutionSection({ species }) {
             const evolution_chain = await fetch(species.evolution_chain.url, {
                 method: "GET",
             }).then((res) => res.json())
-            const pokemonEvoList = []
             const evo_name = [...loopEvo(evolution_chain?.chain)].filter(
                 (data) => data !== null
             )
 
-            for (let i = 0; i < evo_name.length; i++) {
-                const pokemonData = await fetch(
-                    `https://pokeapi.co/api/v2/pokemon/${evo_name[i]}`,
-                    { method: "GET" }
-                ).then((res) => res.json())
-                pokemonEvoList.push({
-                    id: pokemonData.id,
-                    name: pokemonData.name,
-                    image: pokemonData.sprites.other.dream_world.front_default,
-                })
-            }
+            const requestPokemon = evo_name.map((item) =>
+                fetch(`https://pokeapi.co/api/v2/pokemon/${item}`, {
+                    method: "GET",
+                }).catch((err) => {})
+            )
 
-            setEvolutionData(pokemonEvoList)
-            setIsLoading(false)
+            Promise.all(requestPokemon)
+                .then((rsponse) =>
+                    Promise.all(rsponse.map((res) => res.json()))
+                )
+                .then((item) => {
+                    const pokemonEvoList = []
+                    for (let i = 0; i < item.length; i++) {
+                        pokemonEvoList.push({
+                            id: item[i]?.id ?? item[i].name,
+                            name: item[i].name,
+                            image: item[i].sprites.other.dream_world
+                                .front_default,
+                        })
+                    }
+
+                    setEvolutionData(pokemonEvoList)
+                    setIsLoading(false)
+                })
+                .catch((err) => {
+                    setIsLoading(false)
+                })
         } else {
             setIsLoading(false)
         }

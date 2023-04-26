@@ -15,22 +15,28 @@ export const getStaticProps = wrapper.getStaticProps((store) => async () => {
         ).then((res) => res.json())
         const pokemonResult = getPokemonList?.results ?? []
         const count = getPokemonList?.count ?? 0
-        const data = []
+        const requestPokemon = pokemonResult.map((item) =>
+            fetch(item.url, { method: "GET" }).catch((err) => {})
+        )
 
-        for (let i = 0; i < pokemonResult.length; i++) {
-            const pokemonData = await fetch(pokemonResult[i].url, {
-                method: "GET",
-            }).then((res) => res.json())
-            data.push({
-                id: pokemonData.id,
-                name: pokemonData.name,
-                image: pokemonData.sprites.other.dream_world.front_default,
+        await Promise.all(requestPokemon)
+            .then((rsponse) => Promise.all(rsponse.map((res) => res.json())))
+            .then((item) => {
+                const data = []
+                for (let i = 0; i < item.length; i++) {
+                    data.push({
+                        id: item[i]?.id ?? item[i].name,
+                        name: item[i].name,
+                        image: item[i].sprites.other.dream_world.front_default,
+                    })
+                }
+
+                store.dispatch(setPokemonList(data, 1, count))
+                return { props: {}, revalidate: 180 }
             })
-        }
-
-        store.dispatch(setPokemonList(data, 1, count))
-
-        return { props: {}, revalidate: 180 }
+            .catch((err) => {
+                return { notFound: true }
+            })
     } catch (error) {
         return { notFound: true }
     }
